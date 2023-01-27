@@ -105,6 +105,15 @@ class ImportMeasurementsCsv:
         return measurements, stats
 
     def read_csv(self, filename, user_id, dataset_id, log=module_log):
+        def wrapper(gen):
+            while True:
+                try:
+                    yield next(gen)
+                except StopIteration:
+                    break
+                except UnicodeDecodeError as err:
+                    log.debug(err)
+
         measurements = []
         metadata = {}
         try:
@@ -118,7 +127,7 @@ class ImportMeasurementsCsv:
                 line_count = 0
                 metadata_uninitialized = True
                 format_uninitialized = True
-                for line in reader:
+                for line in wrapper(reader):
                     line_count += 1
                     if format_uninitialized:
                         if metadata_uninitialized:
